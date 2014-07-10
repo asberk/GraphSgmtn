@@ -36,15 +36,23 @@
 clear all; close all; clc;
 
 %% Import initial data and set computational parameter values
-inputImg = getImage('img/tiger.gif');
+%imgstr = '~/Downloads/cows/cows1.png';
+imgstr = 'img/tiger.gif';
+inputImg = getImage(imgstr);
 szu0 = size(inputImg);
+if strcmp(imgstr, 'img/tiger.gif');
+    % set detect object to RHS
+    detectObject = 'ti'; % tiger, ti, tr
+else
+    % a different image was chosen
+    detectObject = 'different';
+end
 
-detectObject = 'tr'; % tiger, ti, tr
-L = 500; % Number of random samples to take for X, where Z = X\cup Y
+L = 100; % Number of random samples to take for X, where Z = X\cup Y
 M = 100; % Number of iterations for convergence
 N = 3; % neighbourhood radius
-tau = .2; % weight scaling parameter
-c = 1; % arbitrary constant to adjust region of convexity/concavity (how to determine this???)
+tau = .3; % weight scaling parameter
+c = .3; % arbitrary constant to adjust region of convexity/concavity (how to determine this???)
 dt = .1; % time stepping value
 epsilon = 2; % interface width
 
@@ -65,6 +73,31 @@ switch detectObject
         u0(6:15, 81:88) = -1;
         % tiger
         u0(73:95, 81:134) = -1; % tiger body
+    case {'different', 'diff'}
+        message = sprintf('Manually selecting SSL regions.\nLeft click and hold to begin drawing.\nSimply lift the mouse button to finish');
+        message1 = sprintf('Select portion of foreground region.');
+        message2 = sprintf('Select protion of background region.');
+        figure(1);
+        imshow(inputImg, []);
+        axis on;
+        set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
+        title('Select portion of foreground region', 'FontSize', 16);
+        uiwait(msgbox(message));
+        %uiwait(msgbox(message1));
+        hFHfg = imfreehand(gca, 'Closed', 1);
+        binaryImageObject = hFHfg.createMask();
+        xyObject = hFHfg.getPosition;
+        %axis on;
+        %set(gcf, 'Position', get(0,'Screensize')); % Maximize figure.
+        title('Select portion of background region', 'FontSize', 16);
+        %uiwait(msgbox(message2));
+        hFHbg = imfreehand(gca, 'Closed', 1);
+        binaryImageBG = hFHbg.createMask();
+        xyBG = hFHbg.getPosition;
+        close 1;
+        
+        u0 = binaryImageObject - binaryImageBG;
+        clear message message1 message2 hFHfg hFHbg
     otherwise
         error('whoops');
 end
@@ -118,19 +151,36 @@ Lambda = 1- diag(Xi);
 toc;
 
 %% Visualize eigenvectors
-% szU0 = size(unaught);
-% for k = 1:15
-%     imshow(imgnmz(reshape(Phi(:,k), szU0([2, 1]))).');
-%     pause;
-% end
+figure(1);
+sampledPoints = zeros(size(inputImg));
+sampledPoints(ranL) = 1;
+rChannel = min(1, inputImg + sampledPoints);
+gbChannel = max(0, inputImg - sampledPoints);
+
+[Y I] = sort(Lambda, 'descend');
+for k = 0:floor(size(Phi, 2))
+    Jvec = (2:16) + 15*k;
+    Jvec = Jvec(Jvec <= size(Phi,2));
+    subplot(4,4,1);
+    imshow(cat(3, rChannel, gbChannel, gbChannel), []);
+    title(['$j = ', num2str(1 + 15*k), '\ldots', num2str(15*(k+1)), '$'], 'Interpreter', 'latex');
+for j = Jvec
+    subplot(4,4,j-15*k);
+    imshow(reOrder(Phi(:,I(j-1)), szu0, ranL), []);
+    title(['$\lambda = ', num2str(Y(j-1), 3), '$'], 'Interpreter', 'latex');
+    colorbar;
+end
+pause;
+end
+%pause;
+%close;
 
 %% Convex splitting for Graph Laplacian
 display('Running convex splitting scheme for graph Laplacian...');
 
-lenu0 = length(u0);
 % initialize (all are 1-by-L vectors)
-a = u0*Phi./lenu0; 
-b = (u0.^3)*Phi./lenu0; 
+a = u0*Phi; %./lenu0; 
+b = (u0.^3)*Phi; %;./lenu0; 
 d = zeros(1, L);
 D = 1 + dt*(epsilon*Lambda.' + c);
 
@@ -159,10 +209,10 @@ subplot(2,2,1);
 imshow(inputImg);
 switch detectObject
     case {'tiger', 'ti'}
-        rectangle('Position', [30, 59, 52-30, 84-59]) = 1; % face
+        rectangle('Position', [59, 30, 84-59, 52-30], 'EdgeColor', [1 0 0]); % face
         rectangle('Position', [66, 53, 84-66, 69-53], 'EdgeColor', [1 0 0]); % neck
         rectangle('Position', [66, 70, 146-66, 99-70], 'EdgeColor', [1 0 0]); % body
-        rectangle('Position', [104, 7, 147-104, 41-7], 'EdgeColor', [0 0 1]); % background
+        rectangle('Position', [104, 7, 147-104, 41-7], 'EdgeColor', [0 1 1]); % background
     case {'trees', 'tr'}
         % left tree
         rectangle('Position', [21, 5, 33-21, 16-5], 'EdgeColor', [1 0 0]); % top-left of tree
@@ -177,7 +227,7 @@ switch detectObject
         error('whoops');
 end
 subplot(2,2,2);
-imshow(imgnmz(uM));
+imshow(uM, []);
 subplot(2,2,3);
 hist(uM(:), 20);
 

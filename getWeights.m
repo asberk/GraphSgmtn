@@ -67,9 +67,6 @@ for j = 1:szFtr(2)
     end
 end
 
-if 0 % doing this makes W non-positive definite!
-W = W - diag(diag(W)); % make diagonal zero; assume no vertex has an edge to itself. 
-end
 %% More housekeeping
 if displayProgress
     fprintf('\n');

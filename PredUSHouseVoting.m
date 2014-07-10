@@ -26,8 +26,12 @@ DRlabels = strcmp('democrat', tmp(1,:)) - strcmp('republican',tmp(1,:));
 clear tmp fid
 
 %% Initialize parameters, variables
-M = 750; % Number of iterations for convergence
-tau = .2;
+c = 1; 
+dt = .1; 
+epsilon = 2; 
+
+M = 500; % Number of iterations for convergence
+tau = .3;
 %% Get weights
 
 W = getWeights(hv84, @gaussNorm, 1, 1, tau);
@@ -49,10 +53,6 @@ Phi = real(Phi);
 Lambda = real(diag(Lambda));
 
 %% Convex splitting for Graph Laplacian
-c = 1; 
-dt = .1; 
-epsilon = 2; 
-
 % initialize (all are 1-by-L vectors)
 u0 = zeros(size(DRlabels));
 u0(1:5) = DRlabels(1:5);
@@ -70,7 +70,7 @@ for m = 1:M
     u = a*Phi.';
     b = (u.^3)*Phi;
     d = (eta.*(u-u0(:).'))*Phi;
-
+    
 end
 toc;
 
