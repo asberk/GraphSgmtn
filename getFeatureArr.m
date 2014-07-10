@@ -4,6 +4,14 @@ function FtrArr = getFeatureArr(A, N, varargin)
 % varargin{2} : specify whether to return high-dim feature array ('highD'), or 2-dim
 % feature array ('loD')
 
+% ***
+%     N.B. in loD, columns of FtrArr must be set in the order 
+%     (k-1)*szA(1) + j and NOT in the order (j-1)*szA(2) +k
+%     This is because Matlab column-wise vectorizes matrices --- i.e., 
+%     Matlab turns [ 1 2 3 ; 4 5 6 ; 7 8 9 ] into [ 1 4 7 2 5 8 3 6 9 ].'
+%     and the code needs to be consistent with that paradigm.
+% ***
+
 szA = size(A);
 Awide = widen(A, N, 'Neumann'); % Widen A for convolution
 
@@ -19,10 +27,10 @@ else % => loD
     FtrArr = zeros((2*N+1)^2, prod(szA));
     szftr = size(FtrArr);
     
-    for j = 1:szA(1)
-        for k = 1:szA(2)
+    for k = 1:szA(2)
+        for j = 1:szA(1)
             tmp = Awide((-N:N)+j+N, (-N:N)+k+N);
-            FtrArr(:, (j-1)*szA(2) + k) = tmp(:);  % (j-1)*szA(2) + k
+            FtrArr(:, (k-1)*szA(1) + j) = tmp(:);  % (j-1)*szA(2) + k
         end
     end
 end

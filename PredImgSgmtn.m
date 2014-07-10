@@ -34,7 +34,7 @@
 
 %% Clear Workspace
 clear all; close all; clc;
-
+runDebug = 0;
 %% Import initial data and set computational parameter values
 %imgstr = '~/Downloads/cows/cows1.png';
 imgstr = 'img/tiger.gif';
@@ -42,7 +42,7 @@ inputImg = getImage(imgstr);
 szu0 = size(inputImg);
 if strcmp(imgstr, 'img/tiger.gif');
     % set detect object to RHS
-    detectObject = 'ti'; % tiger, ti, tr
+    detectObject = 'tr'; % tiger, ti, tr
 else
     % a different image was chosen
     detectObject = 'different';
@@ -51,8 +51,8 @@ end
 L = 100; % Number of random samples to take for X, where Z = X\cup Y
 M = 100; % Number of iterations for convergence
 N = 3; % neighbourhood radius
-tau = .3; % weight scaling parameter
-c = .3; % arbitrary constant to adjust region of convexity/concavity (how to determine this???)
+tau = .2; % weight scaling parameter
+c = .25; % arbitrary constant to adjust region of convexity/concavity (how to determine this???)
 dt = .1; % time stepping value
 epsilon = 2; % interface width
 
@@ -151,6 +151,7 @@ Lambda = 1- diag(Xi);
 toc;
 
 %% Visualize eigenvectors
+if runDebug
 figure(1);
 sampledPoints = zeros(size(inputImg));
 sampledPoints(ranL) = 1;
@@ -172,8 +173,9 @@ for j = Jvec
 end
 pause;
 end
-%pause;
-%close;
+pause;
+close;
+end
 
 %% Convex splitting for Graph Laplacian
 display('Running convex splitting scheme for graph Laplacian...');
@@ -201,7 +203,7 @@ toc;
 uM = zeros(size(u));
 uM(ranL) = u(1:L);
 uM(ranLC) = u(L+1:end);
-uM = reshape(uM, [szu0(2), szu0(1)]).';
+uM = reshape(uM, szu0);
 
 %% Plot initial data and final image
 figure(1);
@@ -224,10 +226,11 @@ switch detectObject
         % tiger
         rectangle('Position', [81, 73, 134-81, 95-73], 'EdgeColor', [0 0 1]);  % tiger body
     otherwise
-        error('whoops');
+        warning('whoops');
 end
 subplot(2,2,2);
 imshow(uM, []);
+colorbar;
 subplot(2,2,3);
 hist(uM(:), 20);
 
@@ -238,3 +241,9 @@ for j = 1:4
     imagesc(uM > .4*j-1);
     colormap gray;
 end
+
+%%
+
+figure;
+imshow(imadd(double(uM <= 0.2), inputImg), [])
+colormap gray;

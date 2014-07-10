@@ -12,4 +12,4 @@ lenRanL = length(ranL);
 tmp = zeros(size(u));
 tmp(ranL) = u(1:lenRanL);
 tmp(setdiff(1:length(u), ranL)) = u(lenRanL+1:end);
-uNew = imgnmz(reshape(tmp, szU([2 1]))).';
+uNew = imgnmz(reshape(tmp, szU));
