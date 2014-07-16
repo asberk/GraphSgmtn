@@ -31,9 +31,9 @@ dt = .1;
 epsilon = 2; 
 
 M = 500; % Number of iterations for convergence
-tau = .3;
-%% Get weights
+tau = 3; % use 3 for 1:5, 2 for 4:8; tau makes a difference! (probably in part due to numerical error)
 
+%% Get weights
 W = getWeights(hv84, @gaussNorm, 1, 1, tau);
 
 %% Check if W is positive semi-definite
@@ -44,7 +44,6 @@ if p ~= 0 % then W is not positive semi definite:
 end
 
 %% Compute graph Laplacian
-
 [GL, Deg] = getGraphLaplacian(W); % use default settings to return symmetric graph Laplacian
 
 %% Get EigenInformation of Graph Laplacian
@@ -75,11 +74,11 @@ end
 toc;
 
 
-%%
+%% Display prediction accuracy
+DRpred = sign(u);
 
-DRpred = 2*double(u >= 0)-1;
+predacc = sum(DRpred == DRlabels)/length(DRlabels);
+fprintf('The algorithm determined party affiliation with %04.02f percent accuracy.\n', 100*predacc);
 
-display(sum(DRpred == DRlabels)/length(DRlabels));
-
-%% 
-figure; plot(u)
+%% Compare results graphically
+imagesc([DRlabels; DRpred]); colormap gray; colorbar; 
