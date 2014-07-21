@@ -35,7 +35,14 @@
 %% Clear Workspace
 clear all; close all; clc;
 runDebug = 0;
-%% Import initial data and set computational parameter values
+runBlur = 0;
+if runBlur
+    blurType = 'gaussian';
+    blurParms{1} = 5; % HSIZE
+    blurParms{2} = 1; % SIGMA
+end
+
+%% Import initial data 
 %imgstr = '~/Downloads/cows/cows1.png';
 imgstr = 'img/tiger.gif';
 inputImg = getImage(imgstr);
@@ -48,6 +55,14 @@ else
     detectObject = 'different';
 end
 
+if runBlur
+    psf = fspecial(blurType, blurParms{:});
+    inputImg = imfilter(inputImg, psf, 'symmetric', 'conv');
+    
+end
+
+
+%% Set computational parameter values and initial formatting
 L = 100; % Number of random samples to take for X, where Z = X\cup Y
 M = 100; % Number of iterations for convergence
 N = 3; % neighbourhood radius
