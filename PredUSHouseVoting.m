@@ -48,8 +48,9 @@ end
 
 %% Get EigenInformation of Graph Laplacian
 [Phi,Lambda] = eig(GL);
-Phi = real(Phi);
-Lambda = real(diag(Lambda));
+%Phi = real(Phi);
+Lambda = diag(Lambda);
+%Lambda = real(Lambda)
 
 %% Convex splitting for Graph Laplacian
 % initialize (all are 1-by-L vectors)
@@ -57,22 +58,14 @@ u0 = zeros(size(DRlabels));
 u0(1:5) = DRlabels(1:5);
 
 display('Running convex splitting scheme for graph Laplacian...');
-tic;
-a = u0*Phi; 
-b = (u0.^3)*Phi; 
-d = zeros(1, 435);
-D = 1 + dt*(epsilon*Lambda.' + c);
-eta = abs(u0); %fidelity term
+Parms.eta = abs(u0);
+Parms.M = M;
+Parms.L = 435;
+Parms.c = c;
+Parms.dt = dt;
+Parms.epsilon = epsilon; 
 
-for m = 1:M
-    a = ((1+dt/epsilon + c*dt)*a - dt/epsilon*b - dt*d)./D;
-    u = a*Phi.';
-    b = (u.^3)*Phi;
-    d = (eta.*(u-u0(:).'))*Phi;
-    
-end
-toc;
-
+u = pdeGraphSgmtn(u0, Phi, Lambda, Parms);
 
 %% Display prediction accuracy
 DRpred = sign(u);
@@ -82,3 +75,7 @@ fprintf('The algorithm determined party affiliation with %04.02f percent accurac
 
 %% Compare results graphically
 imagesc([DRlabels; DRpred]); colormap gray; colorbar; 
+set(gcf, 'Color', [1 1 1]);
+figure;
+imagesc(abs(DRlabels - DRpred)<=0); colormap gray; colorbar;
+set(gcf, 'Color', [1 1 1]);

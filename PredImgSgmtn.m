@@ -118,20 +118,15 @@ switch detectObject
 end
 u0 = u0(:).'; % row vector
 
-%% Get features, and choose L at random
+%% Get features
 
 FtrArr = getFeatureArr(inputImg, N); % Neumann, 2D matrix
 szFtr = size(FtrArr);
 
+%% Choose elements for Nystrom extension
 % Get L unique pseudo-random integers
 display('obtaining pseudo-random vector of integers...');
-tic;
-ranL = unique(randi(szFtr(2), [1, L]));
-while size(unique(ranL), 2) < L 
-    ranL = unique([ ranL, randi(szFtr(2), [1,L])]);
-end
-ranL = ranL(1:L); % trim extra
-toc;
+ranL = randperm(szFtr(2), L);
 
 % FtrArr = Z = X \cup Y
 ranLC = setdiff(1:szFtr(2), ranL); % the complement of ranL
@@ -148,22 +143,26 @@ display('Approximate graph Laplacian using Nyström Extension.');
 display('Computing partial adjacency matrix...')
 [Wxx, Wxy] = getNormalizedSampleWeights(X,Y, @gaussNorm, tau);
 
-%% More stuff
-display('Computing eigenvectors of sampled subspace, components of orthognal approximation...');
-tic;
-[Bx, Gamma] = eig(Wxx);
-sqrtGamma = Gamma^(1/2);
-S = Bx*(sqrtGamma\Bx.');
-Q = Wxx + S*(Wxy*Wxy.')*S;
-[A Xi] = eig(Q);
-toc;
+%% Nystrom extension
+[Phi, Lambda] = nystrom(Wxx, Wxy);
 
-%%
-display('Approximating leading eigenvectors of graph Laplacian on orthogonal subspace...');
-tic;
-Phi = [Bx*sqrtGamma; Wxy.'*Bx/sqrtGamma]*Bx.'*(A/(Xi^(1/2)));
-Lambda = 1- diag(Xi);
-toc;
+
+% %% More stuff
+% display('Computing eigenvectors of sampled subspace, components of orthognal approximation...');
+% tic;
+% [Bx, Gamma] = eig(Wxx);
+% sqrtGamma = Gamma^(1/2);
+% S = Bx*(sqrtGamma\Bx.');
+% Q = Wxx + S*(Wxy*Wxy.')*S;
+% [A Xi] = eig(Q);
+% toc;
+% 
+% %%
+% display('Approximating leading eigenvectors of graph Laplacian on orthogonal subspace...');
+% tic;
+% Phi = [Bx*sqrtGamma; Wxy.'*Bx/sqrtGamma]*Bx.'*(A/(Xi^(1/2)));
+% Lambda = 1- diag(Xi);
+% toc;
 
 %% Visualize eigenvectors
 if runDebug
@@ -195,23 +194,32 @@ end
 %% Convex splitting for Graph Laplacian
 display('Running convex splitting scheme for graph Laplacian...');
 
-% initialize (all are 1-by-L vectors)
-a = u0*Phi; %./lenu0; 
-b = (u0.^3)*Phi; %;./lenu0; 
-d = zeros(1, L);
-D = 1 + dt*(epsilon*Lambda.' + c);
+Parms.c = c;
+Parms.dt = dt;
+Parms.epsilon = epsilon;
+Parms.eta = abs(u0);
+Parms.L = L;
+Parms.M = M;
 
-eta = abs(u0); %fidelity term; known information
+u = pdeGraphSgmtn(u0, Phi, Lambda, Parms);
 
-tic;
-for m = 1:M
-    a = ((1+dt/epsilon + c*dt)*a - dt/epsilon*b - dt*d)./D;
-    u = a*Phi.';
-    b = (u.^3)*Phi;
-    d = (eta.*(u-u0))*Phi;
-
-end
-toc;
+% % initialize (all are 1-by-L vectors)
+% a = u0*Phi; %./lenu0; 
+% b = (u0.^3)*Phi; %;./lenu0; 
+% d = zeros(1, L);
+% D = 1 + dt*(epsilon*Lambda.' + c);
+% 
+% eta = abs(u0); %fidelity term; known information
+% 
+% tic;
+% for m = 1:M
+%     a = ((1+dt/epsilon + c*dt)*a - dt/epsilon*b - dt*d)./D;
+%     u = a*Phi.';
+%     b = (u.^3)*Phi;
+%     d = (eta.*(u-u0))*Phi;
+% 
+% end
+% toc;
 
 %% Post convergence rearrangement
 % after we run the algorithm, we need to un-sort the elements

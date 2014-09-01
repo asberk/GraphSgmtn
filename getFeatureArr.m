@@ -48,7 +48,7 @@ if (nargin >= 4) && strcmp(varargin{2}, 'highD')
     end
 else % => loD
     % the size of FtrArr is a dirty hack; change it. 
-    warning('Number of rows of FtrArr has not been made adjustable to suit output size of arbitrary transformations. Transformation output must be same size as input: (2N+1)^2');
+    warning('Number of rows of FtrArr has not been made adjustable to suit output size of arbitrary transformations. Transformation output must be same size as input: (2N+1)^2. A future update should take care of this.');
     FtrArr = zeros((2*N+1)^2, prod(szA));
     szftr = size(FtrArr);
     

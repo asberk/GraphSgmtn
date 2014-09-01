@@ -67,7 +67,7 @@ end
 L = 100; % Number of random samples to take for X, where Z = X\cup Y
 M = 100; % Number of iterations for convergence
 N = 3; % neighbourhood radius
-tau = .2; % weight scaling parameter
+tau = 2; % weight scaling parameter
 c = .25; % arbitrary constant to adjust region of convexity/concavity (how to determine this???)
 dt = .1; % time stepping value
 epsilon = 2; % interface width
@@ -121,7 +121,8 @@ end
 u0 = u0(:).'; % row vector
 
 %% Get features, and choose L at random
-FtrArr = getFeatureArr(inputImg, N); % Neumann, 2D matrix
+myFFT = @(x) abs(fftshift(fft2(x)));
+FtrArr = getFeatureArr(inputImg, N, myFFT); % Neumann, 2D matrix
 szFtr = size(FtrArr);
 
 % Get L unique pseudo-random integers
@@ -149,22 +150,8 @@ display('Approximate graph Laplacian using Nyström Extension.');
 display('Computing partial adjacency matrix...')
 [Wxx, Wxy] = getNormalizedSampleWeights(X,Y, @gaussNorm, tau);
 
-%% More stuff
-display('Computing eigenvectors of sampled subspace, components of orthognal approximation...');
-tic;
-[Bx, Gamma] = eig(Wxx);
-sqrtGamma = Gamma^(1/2);
-S = Bx*(sqrtGamma\Bx.');
-Q = Wxx + S*(Wxy*Wxy.')*S;
-[A Xi] = eig(Q);
-toc;
-
-%%
-display('Approximating leading eigenvectors of graph Laplacian on orthogonal subspace...');
-tic;
-Phi = [Bx*sqrtGamma; Wxy.'*Bx/sqrtGamma]*Bx.'*(A/(Xi^(1/2)));
-Lambda = 1- diag(Xi);
-toc;
+%% Nyström extension
+[Phi, Lambda] = nystrom(Wxx, Wxy);
 
 %% Visualize eigenvectors
 if runDebug
@@ -196,23 +183,14 @@ end
 %% Convex splitting for Graph Laplacian
 display('Running convex splitting scheme for graph Laplacian...');
 
-% initialize (all are 1-by-L vectors)
-a = u0*Phi; %./lenu0; 
-b = (u0.^3)*Phi; %;./lenu0; 
-d = zeros(1, L);
-D = 1 + dt*(epsilon*Lambda.' + c);
+Parms.c = c;
+Parms.dt = dt;
+Parms.epsilon = epsilon;
+Parms.eta = abs(u0);
+Parms.M = M;
+Parms.L = L;
 
-eta = abs(u0); %fidelity term; known information
-
-tic;
-for m = 1:M
-    a = ((1+dt/epsilon + c*dt)*a - dt/epsilon*b - dt*d)./D;
-    u = a*Phi.';
-    b = (u.^3)*Phi;
-    d = (eta.*(u-u0))*Phi;
-
-end
-toc;
+u = pdeGraphSgmtn(u0, Phi, Lambda, Parms);
 
 %% Post convergence rearrangement
 % after we run the algorithm, we need to un-sort the elements

@@ -1,7 +1,7 @@
 function arrExplore(W, j,k)
 % ARREXPLORE Use arrow keys and left mouse button to explore 2D cross sections of a 4D array. Useful for exploring a weight matrix whose elements represent edge weights of an undirected graph, whose vertices are pixels in an image. 
 % e.g., given W = getWeights(FtrArr, @gaussNorm, 1, 1, tau), 
-% set W_arr = reshape(W, szu0, szu0) and execute arrExplore(W_arr, 1, 1),
+% set W_arr = reshape(W, [szu0, szu0]) and execute arrExplore(W_arr, 1, 1),
 % where szu0 = size(u0) and u0 is the original image (or a matrix having
 % size equal to the original image). 
 
