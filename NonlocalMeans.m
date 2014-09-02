@@ -3,6 +3,8 @@
 %     represented as NxN neighbourhoods of pixels about that pixel. The
 %     eigenvectors of the symmetric graph Laplacian are determined, and the
 %     top 10 visualized. 
+%  This function is mainly used to exemplify the efficacy of the
+%  eigenvectors of the graph Laplacian to represent the image features.
 
 %% Clear workspace
 clear all; close all; clc;

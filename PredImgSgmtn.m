@@ -268,5 +268,5 @@ end
 %%
 
 figure;
-imshow(imadd(double(uM <= 0.2), inputImg), [])
+imshow(imadd(double(uM <= 0), inputImg), [])
 colormap gray;

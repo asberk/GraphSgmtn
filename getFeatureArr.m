@@ -3,9 +3,6 @@ function FtrArr = getFeatureArr(A, N, varargin)
 % varargin{1}     : T, transformation to apply to features (e.g., Fourier,
 %                   wavelet transform)
 % varargin{j}     : auxiliary parameters to varargin{1}.
-% varargin{end-1} : aux param to widen: Neumann, Dirichlet, etc.
-% varargin{end}   : specify whether to return high-dim feature array 
-%                   ('highD'), or 2-dim feature array ('loD')
 %
 % ***
 %     N.B. in loD, columns of FtrArr must be set in the order 
@@ -25,7 +22,8 @@ if nargin-2 > 0
         warning('auxiliary parameter to widen, high dimensional array return not supported.');
     end
 else
-    T = @(x) x;
+    % T is the identity transformation
+    T = [];
 end
 if nargin-2 > 1
     % T requires auxiliary parameters
@@ -38,26 +36,18 @@ end
     
 
 % 'highD' is vestigial, and would probably now clash with other methods. 
-if (nargin >= 4) && strcmp(varargin{2}, 'highD')
-    FtrArr = zeros([szA, 2*N+1, 2*N+1]); % empty array to store result
+% the size of FtrArr is a dirty hack; change it.
+warning('Number of rows of FtrArr has not been made adjustable to suit output size of arbitrary transformations. Transformation output must be same size as input: (2N+1)^2. A future update should take care of this.');
+FtrArr = zeros((2*N+1)^2, prod(szA));
+szftr = size(FtrArr);
 
-    for j = (1:szA(1))+N % there's probably a loop-free way to do this...
-        for k = (1:szA(2))+N
-            FtrArr(j,k, :, :) = Awide((-N:N)+j, (-N:N)+k);
-        end
-    end
-else % => loD
-    % the size of FtrArr is a dirty hack; change it. 
-    warning('Number of rows of FtrArr has not been made adjustable to suit output size of arbitrary transformations. Transformation output must be same size as input: (2N+1)^2. A future update should take care of this.');
-    FtrArr = zeros((2*N+1)^2, prod(szA));
-    szftr = size(FtrArr);
-    
-    for k = 1:szA(2)
-        for j = 1:szA(1)
-            tmp = Awide((-N:N)+j+N, (-N:N)+k+N);
+for k = 1:szA(2)
+    for j = 1:szA(1)
+        tmp = Awide((-N:N)+j+N, (-N:N)+k+N);
+        if isa(T, 'function_handle')
             tmp = T(tmp, opt{:});
-            FtrArr(:, (k-1)*szA(1) + j) = tmp(:);  % (j-1)*szA(2) + k
         end
+        FtrArr(:, (k-1)*szA(1) + j) = tmp(:);  % (j-1)*szA(2) + k
     end
 end
 

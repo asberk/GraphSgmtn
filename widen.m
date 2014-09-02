@@ -1,5 +1,6 @@
 function Awide = widen(A, N, type)
-%% Widens a matrix so that it can be convolved with padding. 
+% WIDEN(A,N,type) widens a matrix A by N pixels on each border by type TYPE, so that it can be convolved with padding. 
+%   type : Dirichlet, Neumann (default)
 szA = size(A);
 
 Awide = zeros(szA+2*N);

@@ -67,15 +67,15 @@ Parms.epsilon = epsilon;
 
 u = pdeGraphSgmtn(u0, Phi, Lambda, Parms);
 
-%% Display prediction accuracy
-DRpred = sign(u);
-
-predacc = sum(DRpred == DRlabels)/length(DRlabels);
-fprintf('The algorithm determined party affiliation with %04.02f percent accuracy.\n', 100*predacc);
-
-%% Compare results graphically
-imagesc([DRlabels; DRpred]); colormap gray; colorbar; 
-set(gcf, 'Color', [1 1 1]);
-figure;
-imagesc(abs(DRlabels - DRpred)<=0); colormap gray; colorbar;
-set(gcf, 'Color', [1 1 1]);
+% %% Display prediction accuracy
+% DRpred = sign(u);
+% 
+% predacc = sum(DRpred == DRlabels)/length(DRlabels);
+% fprintf('The algorithm determined party affiliation with %04.02f percent accuracy.\n', 100*predacc);
+% 
+% %% Compare results graphically
+% imagesc([DRlabels; DRpred]); colormap gray; colorbar; 
+% set(gcf, 'Color', [1 1 1]);
+% figure;
+% imagesc(abs(DRlabels - DRpred)<=0); colormap gray; colorbar;
+% set(gcf, 'Color', [1 1 1]);

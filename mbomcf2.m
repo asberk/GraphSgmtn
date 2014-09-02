@@ -4,7 +4,7 @@ function Aout = mbomcf2(A, alphadt, varargin)
 %     * This algorithm is for two-dimensional stuff only (uses fft2)
 %     Input parameters:
 %     alphadt = alpha*dt = (heat flux parameter)*(discrete time step)
-%     varargin{1} = T = total time of evolution = 500*dt (default)
+%     varargin{1} = T = number of time-steps = 500 (default)
 %     varargin{2} = co = cutoff value = 1/2 (default)
 %     varargin{3} = visualize = whether to show visualization
 

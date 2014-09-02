@@ -12,7 +12,7 @@ yv = xv.';
 [x,y] = meshgrid(xv,yv);
 
 dt = .01;
-%% Initial surface
+%% Initial surface 1
 A0 = zeros(size(x));
 % A0(x< .333 & x > .1 & y < .667 & y > .333) = 1;
 % A0(x > .2 & x < .8 & y > .4 & y < .5) = 1;
@@ -33,7 +33,28 @@ end
 A = mbomcf2(A0, alpha*dt, 1000, 'vp', 1);
 
 %% Visualize
-subplot(2,2,1);
+subplot(1,2,1);
 imshow(A0, []);
-subplot(2,2,2);
+subplot(1,2,2);
 imshow(A, []);
+
+
+%% Interlude
+pause;
+display('Hit Enter to continue...');
+
+%% Initial surface 2
+B0 = zeros(size(x));
+B0(x< .333 & x > .1 & y < .667 & y > .333) = 1;
+B0(x > .2 & x < .8 & y > .4 & y < .5) = 1;
+B0(x < .9 & x > .667 & y < .667 & y > .333) = 1;
+
+%% MBO scheme for evolution by mean curvature flow
+% A = mbomcf(input,flux*time,Niter,SubSteps,Cut-Off)
+B = mbomcf2(B0, alpha*dt, 1000, 'vp', 1);
+
+%% Visualize
+subplot(1,2,1);
+imshow(B0, []);
+subplot(1,2,2);
+imshow(B, []);

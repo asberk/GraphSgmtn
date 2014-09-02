@@ -1,25 +1,14 @@
 function W = getWeights(FtrArr, weightFunc, varargin)
-% % % code for high-dim feature array
-% wvec = zeros([szA, szA]);
-% 
-% for j1 = 1:szA(1)
-%     display(j1);
-%     for k1 = 1:szA(2)
-%         display(k1);
-%         for j2 = j1:szA(1) % suffices to compute for upper-triangular matrix.
-%             if j2 == j1
-%                 k2vec = k1:szA(2);
-%             else
-%                 k2vec = 1:szA(2);
-%             end
-%             for k2 = k2vec
-%                 wvec(j1, k1, j2, k2) = exp(-norm(shiftdim(ftrvec(j1,k1,:,:) - ftrvec(j2,k2,:,:),2)));
-%             end
-%         end
-%     end
-% end
+% GETWEIGHTS computes the adjacency matrix correpsonding to a given feature array. 
+%   FtrArr : a vector of feature vectors corresponding to each vertex in
+%            the graph
+%   weightFunc : the function used to compute the weight matrix; must
+%                return a PSD matrix
+%   varargin{1} : display progress? (default 0)
+%   varargin{2} : display elapsed time? (default 0)
+%   varargin{j:end} : auxiliary parameters to weightFunc
 
-% % % lo-dim feature array
+%% set-up
 szFtr = size(FtrArr);
 W = zeros(szFtr(2)); % nxn matrix where n = #(pixels of A)
 % W(i,j) = (weight of edge/ adjacency strength) between pixel i and pixel j
